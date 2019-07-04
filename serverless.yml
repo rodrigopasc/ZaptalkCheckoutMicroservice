@@ -1,0 +1,35 @@
+service: zaptalk-checkout-microservice
+
+plugins:
+  - serverless-pseudo-parameters
+
+custom:
+  secrets: ${file(secrets.json)}
+
+provider:
+  name: aws
+  runtime: nodejs10.x
+  stage: dev
+  region: ${self:custom.secrets.aws.region}
+  memorySize: 128
+  tracing:
+    apiGateway: true
+    lambda: true
+  environment:
+    accountId: ${self:custom.secrets.aws.accountId}
+    region: ${self:custom.secrets.aws.region}
+    snsTopic: ${self:custom.secrets.aws.snsTopic}
+  iamRoleStatements:
+    - Effect: "Allow"
+      Resource: "*"
+      Action:
+        - "sns:*"
+
+functions:
+  init:
+    handler: checkout.handle
+    events:
+      - http:
+          path: checkout
+          method: post
+          cors: true
